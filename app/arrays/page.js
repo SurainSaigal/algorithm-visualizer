@@ -1,6 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
+import { bubbleSort } from "./sortingAlgorithms";
 
+/* generate a random integer array given a minimum, maximum, and length */
 function generateRandomArray(minVal, maxVal, length) {
     const arr = [];
     for (let i = 0; i < length; i++) {
@@ -10,22 +12,58 @@ function generateRandomArray(minVal, maxVal, length) {
     return arr;
 }
 
+/* delay function */
+export function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/* change the color of any number of bars given an array of indices and a color */
+export async function colorAnimate(indices, color) {
+    for (const id of indices) {
+        const bar = document.getElementById(id + "-bar");
+        if (bar) {
+            bar.style.background = color;
+        }
+        const num = document.getElementById(id + "-number");
+        if (num) {
+            num.style.color = color;
+            num.style.borderColor = color;
+        }
+    }
+}
+
+/* animate the swapping of two array bars */
+export async function swapBars(idx1, idx2, array, setArray) {
+    const newArray = [...array];
+    [newArray[idx1], newArray[idx2]] = [newArray[idx2], newArray[idx1]];
+    setArray(newArray);
+}
+
 const maxBarHeight = 600;
 const arrLengthToBarWidth = {
     5: 20,
     65: 15,
     85: 10,
     115: 5,
-    200: 3,
-    280: 1,
 };
 
 export default function Arrays() {
-    const [array, setArray] = useState([]);
     const [arrayLength, setArrayLength] = useState(5);
     const [barWidth, setBarWidth] = useState(20);
+    const [array, setArray] = useState([]);
 
     useEffect(() => {
+        for (let i = 0; i < array.length; i++) {
+            const bar = document.getElementById(i + "-bar");
+            if (bar) {
+                bar.style.background = "white";
+            }
+            const num = document.getElementById(i + "-number");
+            if (num) {
+                num.style.color = "white";
+                num.style.borderColor = "white";
+            }
+        }
         setArray(generateRandomArray(1, 100, arrayLength));
 
         if (arrayLength in arrLengthToBarWidth) {
@@ -63,29 +101,41 @@ export default function Arrays() {
                     type="range"
                     value={arrayLength}
                     min="5"
-                    max="450"
+                    max="200"
                     step="5"
                     onChange={handleSliderChange}
                     className="ms-2 me-2 mt-2 w-44 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
                 />
                 <div>{arrayLength}</div>
+                <button
+                    className="ms-5 border rounded-md"
+                    onClick={() => {
+                        bubbleSort(array, setArray);
+                        // setArray(arr);
+                    }}
+                >
+                    Bubble Sort
+                </button>
             </div>
 
             <div className="flex flex-row mt-10 max-w-screen">
                 {array.map((num, index) => (
-                    <div className="flex flex-col items-center">
+                    <div className="flex flex-col items-center" key={index} id={index + "-full"}>
                         {arrayLength <= 40 && (
                             <div
                                 className={`w-8 h-7 border text-center ${
                                     index === 0 ? "rounded-l-lg" : ""
                                 } ${index === array.length - 1 ? "rounded-r-lg" : ""}`}
-                                key={index}
+                                id={index + "-number"}
                             >
                                 {num}
                             </div>
                         )}
                         <div
-                            className="bg-gray-200 rounded-b-lg me-[2px]"
+                            className={`bg-gray-200 rounded-b-lg me-[2px] ${
+                                arrayLength > 40 ? `rounded-t-lg` : ``
+                            }`}
+                            id={index + "-bar"}
                             style={{
                                 width: `${barWidth}px`,
                                 height: `${(num / 100) * maxBarHeight}px`,
