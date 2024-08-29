@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { bubbleSort } from "./sortingAlgorithms";
+import { bubbleSort, insertionSort, mergesort, arraysEqual } from "./sortingAlgorithms";
 
 /* generate a random integer array given a minimum, maximum, and length */
 function generateRandomArray(minVal, maxVal, length) {
@@ -30,13 +30,34 @@ export async function colorAnimate(indices, color) {
             num.style.borderColor = color;
         }
     }
+    return;
 }
 
 /* animate the swapping of two array bars */
-export async function swapBars(idx1, idx2, array, setArray) {
-    const newArray = [...array];
-    [newArray[idx1], newArray[idx2]] = [newArray[idx2], newArray[idx1]];
-    setArray(newArray);
+export async function swapBars(idx1, idx2, arr, setArray) {
+    // console.log("arr before", arr);
+    // console.log("swapping ", arr[idx1], "and ", arr[idx2]);
+    let newArr = arr.slice();
+    let tmp = newArr[idx1];
+    newArr[idx1] = newArr[idx2];
+    newArr[idx2] = tmp;
+    // console.log("new array", newArr);
+    setArray(newArr);
+    return;
+}
+
+function resetBars(array) {
+    for (let i = 0; i < array.length; i++) {
+        const bar = document.getElementById(i + "-bar");
+        if (bar) {
+            bar.style.background = "white";
+        }
+        const num = document.getElementById(i + "-number");
+        if (num) {
+            num.style.color = "white";
+            num.style.borderColor = "white";
+        }
+    }
 }
 
 const maxBarHeight = 600;
@@ -51,19 +72,11 @@ export default function Arrays() {
     const [arrayLength, setArrayLength] = useState(5);
     const [barWidth, setBarWidth] = useState(20);
     const [array, setArray] = useState([]);
+    const [sorting, setSorting] = useState(false);
+    const [sorted, setSorted] = useState(false);
 
     useEffect(() => {
-        for (let i = 0; i < array.length; i++) {
-            const bar = document.getElementById(i + "-bar");
-            if (bar) {
-                bar.style.background = "white";
-            }
-            const num = document.getElementById(i + "-number");
-            if (num) {
-                num.style.color = "white";
-                num.style.borderColor = "white";
-            }
-        }
+        resetBars(array);
         setArray(generateRandomArray(1, 100, arrayLength));
 
         if (arrayLength in arrLengthToBarWidth) {
@@ -100,6 +113,7 @@ export default function Arrays() {
                     id="default-range"
                     type="range"
                     value={arrayLength}
+                    disabled={sorting}
                     min="5"
                     max="200"
                     step="5"
@@ -109,12 +123,55 @@ export default function Arrays() {
                 <div>{arrayLength}</div>
                 <button
                     className="ms-5 border rounded-md"
-                    onClick={() => {
-                        bubbleSort(array, setArray);
-                        // setArray(arr);
+                    disabled={sorting}
+                    onClick={async () => {
+                        if (sorted) {
+                            resetBars(array);
+                            await sleep(2000);
+                        }
+                        setSorting(true);
+                        await bubbleSort(array, setArray);
+                        setSorting(false);
+                        setSorted(true);
                     }}
                 >
                     Bubble Sort
+                </button>
+                <button
+                    className="ms-5 border rounded-md"
+                    disabled={sorting}
+                    onClick={async () => {
+                        if (sorted) {
+                            resetBars(array);
+                            await sleep(2000);
+                        }
+                        setSorting(true);
+                        await insertionSort(array, setArray);
+                        setSorting(false);
+                        setSorted(true);
+                    }}
+                >
+                    Insertion Sort
+                </button>
+                <button
+                    className="ms-5 border rounded-md"
+                    disabled={sorting}
+                    onClick={async () => {
+                        if (sorted) {
+                            resetBars(array);
+                            await sleep(2000);
+                        }
+                        setSorting(true);
+
+                        let testSort = array.slice().sort((a, b) => a - b);
+                        let arr = mergesort(array);
+
+                        console.log(arraysEqual(arr, testSort));
+                        setSorting(false);
+                        setSorted(true);
+                    }}
+                >
+                    Mergesort
                 </button>
             </div>
 
