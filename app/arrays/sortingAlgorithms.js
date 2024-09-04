@@ -8,11 +8,16 @@ export const sortedColor = "#0cff00";
 const originalColor = "#ffffff";
 
 /* bubble sort with delays for animation purposes */
-export async function bubbleSort(array, setArray) {
+export async function bubbleSort(array, setArray, stopSort) {
     // let testSort = array.slice().sort((a, b) => a - b);
     let delay = getAnimationDelay(array.length);
     for (let i = 0; i < array.length; i++) {
         for (let j = 0; j < array.length - i - 1; j++) {
+            console.log(stopSort);
+            if (stopSort.current) {
+                stopSort.current = false;
+                return false;
+            }
             colorAnimate([j, j + 1], comparisonColor);
             await sleep(delay);
             if (array[j] > array[j + 1]) {
@@ -30,11 +35,10 @@ export async function bubbleSort(array, setArray) {
         }
         colorAnimate([array.length - i - 1], sortedColor);
     }
-    // console.log(arraysEqual(testSort, array)); // test sorting algorithm
-    return array;
+    return true;
 }
 
-export async function insertionSort(array, setArray) {
+export async function insertionSort(array, setArray, stopSort) {
     // let testSort = array.slice().sort((a, b) => a - b);
     let delay = getAnimationDelay(array.length);
     for (let i = 0; i < array.length; i++) {
@@ -44,6 +48,10 @@ export async function insertionSort(array, setArray) {
 
         let j = i - 1;
         while (j >= 0) {
+            if (stopSort.current) {
+                stopSort.current = false;
+                return false;
+            }
             let cur = array[j];
             if (key < cur) {
                 await swapBars(j, j + 1, array, setArray);
@@ -60,18 +68,31 @@ export async function insertionSort(array, setArray) {
         colorAnimate([i, j + 1], sortedColor); // ith element is sorted
         await sleep(delay);
     }
-    console.log(array);
 
     // console.log(arraysEqual(testSort, array));
-    return array;
+    return true;
 }
 
-export async function mergesort(arrayMain, start, end, auxArray, setArray, delay) {
-    if (start === end) return;
+export async function mergesort(arrayMain, start, end, auxArray, delay, stopSort) {
+    if (stopSort.current) {
+        stopSort.current = false;
+        return false;
+    }
+    if (start === end) return true;
     const mid = Math.floor((start + end) / 2);
-    await mergesort(auxArray, start, mid, arrayMain, setArray, delay); // first half
-    await mergesort(auxArray, mid + 1, end, arrayMain, setArray, delay); // second half
-    await mergeHelp(arrayMain, start, mid, end, auxArray, setArray, delay); // do the actual merging
+    let success = await mergesort(auxArray, start, mid, arrayMain, delay, stopSort); // first half
+
+    if (!success) {
+        return false;
+    }
+
+    success = await mergesort(auxArray, mid + 1, end, arrayMain, delay, stopSort); // second half
+
+    if (!success) {
+        return false;
+    }
+    await mergeHelp(arrayMain, start, mid, end, auxArray, delay); // do the actual merging
+    return true;
 }
 
 async function mergeHelp(arrayMain, start, mid, end, auxArray, delay) {

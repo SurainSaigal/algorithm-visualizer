@@ -1,13 +1,7 @@
 "use client";
-import { useState, useEffect } from "react";
-import {
-    bubbleSort,
-    insertionSort,
-    getAnimationDelay,
-    arraysEqual,
-    mergesort,
-    sortedColor,
-} from "./sortingAlgorithms";
+import { useState, useRef, useEffect } from "react";
+import { bubbleSort, insertionSort, getAnimationDelay, mergesort } from "./sortingAlgorithms";
+import { FaStop } from "react-icons/fa";
 
 /* generate a random integer array given a minimum, maximum, and length */
 function generateRandomArray(minVal, maxVal, length) {
@@ -50,6 +44,7 @@ export async function swapBars(idx1, idx2, arr, setArray) {
     return;
 }
 
+/* turn all bars white again */
 function resetBars(array) {
     for (let i = 0; i < array.length; i++) {
         const bar = document.getElementById(i + "-bar");
@@ -72,6 +67,7 @@ const arrLengthToBarWidth = {
     115: 5,
 };
 
+/* adjust the value of an individual bar */
 export function changeBar(idx, newValue) {
     const bar = document.getElementById(idx + "-bar");
     if (bar) {
@@ -90,6 +86,8 @@ export default function Arrays() {
     const [sorting, setSorting] = useState(false);
     const [sorted, setSorted] = useState(false);
     const [sortAlgo, setSortAlgo] = useState("");
+    // const [stop, setStop] = useState(false);
+    let stopSortingRef = useRef(false);
 
     useEffect(() => {
         resetBars(array);
@@ -171,9 +169,15 @@ export default function Arrays() {
                         }
                         setSortAlgo("bubble");
                         setSorting(true);
-                        await bubbleSort(arr, setArray);
+                        let isSorted = await bubbleSort(arr, setArray, stopSortingRef);
+
                         setSorting(false);
-                        setSorted(true);
+                        setSorted(isSorted);
+
+                        if (!isSorted) {
+                            // sorting stopped prematurely
+                            await shuffleBars();
+                        }
                     }}
                 >
                     Bubble Sort
@@ -189,9 +193,15 @@ export default function Arrays() {
                         }
                         setSortAlgo("insertion");
                         setSorting(true);
-                        await insertionSort(arr, setArray);
+                        let isSorted = await insertionSort(arr, setArray, stopSortingRef);
+
                         setSorting(false);
-                        setSorted(true);
+                        setSorted(isSorted);
+
+                        if (!isSorted) {
+                            // sorting stopped prematurely
+                            await shuffleBars();
+                        }
                     }}
                 >
                     Insertion Sort
@@ -210,14 +220,39 @@ export default function Arrays() {
 
                         let copy = arr.slice();
                         let delay = getAnimationDelay(arr.length);
-                        await mergesort(copy, 0, arr.length - 1, arr.slice(), delay);
+                        let isSorted = await mergesort(
+                            copy,
+                            0,
+                            arr.length - 1,
+                            arr.slice(),
+                            delay,
+                            stopSortingRef
+                        );
 
                         setSorting(false);
-                        setSorted(true);
+                        setSorted(isSorted);
+
+                        if (!isSorted) {
+                            // sorting stopped prematurely
+                            await shuffleBars();
+                        }
                     }}
                 >
                     Mergesort
                 </button>
+                {sorting && (
+                    <label title="Stop sorting">
+                        <button
+                            disabled={!sorting}
+                            onClick={() => {
+                                stopSortingRef.current = true;
+                            }}
+                            aria-label="Stop"
+                        >
+                            <FaStop className="ms-5 mt-1" size="22" color="#E74C3C"></FaStop>
+                        </button>
+                    </label>
+                )}
             </div>
 
             <div className="flex flex-row mt-10 max-w-screen">
