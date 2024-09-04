@@ -89,6 +89,7 @@ export default function Arrays() {
     const [array, setArray] = useState([]);
     const [sorting, setSorting] = useState(false);
     const [sorted, setSorted] = useState(false);
+    const [sortAlgo, setSortAlgo] = useState("");
 
     useEffect(() => {
         resetBars(array);
@@ -108,6 +109,20 @@ export default function Arrays() {
             }
         }
     }, [arrayLength]);
+
+    useEffect(() => {
+        if (sorting) {
+            const button = document.getElementById(sortAlgo);
+            if (button) {
+                button.classList.add("button-highlight");
+            }
+        } else {
+            const button = document.getElementById(sortAlgo);
+            if (button) {
+                button.classList.remove("button-highlight");
+            }
+        }
+    }, [sorting]);
 
     const handleSliderChange = (event) => {
         setSorted(false);
@@ -146,13 +161,15 @@ export default function Arrays() {
                 />
                 <div>{arrayLength}</div>
                 <button
-                    className="ms-5 border rounded-md"
+                    className="ms-5 border-2 rounded-md px-2"
                     disabled={sorting}
+                    id="bubble"
                     onClick={async () => {
                         let arr = array;
                         if (sorted) {
                             arr = await shuffleBars();
                         }
+                        setSortAlgo("bubble");
                         setSorting(true);
                         await bubbleSort(arr, setArray);
                         setSorting(false);
@@ -162,13 +179,15 @@ export default function Arrays() {
                     Bubble Sort
                 </button>
                 <button
-                    className="ms-5 border rounded-md"
+                    className="ms-5 border-2 rounded-md px-2"
+                    id="insertion"
                     disabled={sorting}
                     onClick={async () => {
                         let arr = array;
                         if (sorted) {
                             arr = await shuffleBars();
                         }
+                        setSortAlgo("insertion");
                         setSorting(true);
                         await insertionSort(arr, setArray);
                         setSorting(false);
@@ -178,13 +197,15 @@ export default function Arrays() {
                     Insertion Sort
                 </button>
                 <button
-                    className="ms-5 border rounded-md"
+                    className="ms-5 border-2 rounded-md px-2"
                     disabled={sorting}
+                    id="merge"
                     onClick={async () => {
                         let arr = array;
                         if (sorted) {
                             arr = await shuffleBars();
                         }
+                        setSortAlgo("merge");
                         setSorting(true);
 
                         let copy = arr.slice();
