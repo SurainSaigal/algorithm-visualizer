@@ -7,19 +7,20 @@ const secondHalfColor = "#d70c72";
 export const sortedColor = "#0cff00";
 const originalColor = "#ffffff";
 
-/* bubble sort with delays for animation purposes */
+/* bubble sort algorithm with delays for animation purposes */
 export async function bubbleSort(array, setArray, stopSort) {
-    // let testSort = array.slice().sort((a, b) => a - b);
     let delay = getAnimationDelay(array.length);
     for (let i = 0; i < array.length; i++) {
         for (let j = 0; j < array.length - i - 1; j++) {
-            console.log(stopSort);
+            /* useRef indicates whether the user has indicated to stop the sorting */
             if (stopSort.current) {
                 stopSort.current = false;
                 return false;
             }
+
             colorAnimate([j, j + 1], comparisonColor);
             await sleep(delay);
+
             if (array[j] > array[j + 1]) {
                 colorAnimate([j, j + 1], swapColor);
                 if (delay > 100) {
@@ -38,8 +39,8 @@ export async function bubbleSort(array, setArray, stopSort) {
     return true;
 }
 
+/* insertion sort algorithm with delays and color changes for animation purposes */
 export async function insertionSort(array, setArray, stopSort) {
-    // let testSort = array.slice().sort((a, b) => a - b);
     let delay = getAnimationDelay(array.length);
     for (let i = 0; i < array.length; i++) {
         let key = array[i];
@@ -48,12 +49,15 @@ export async function insertionSort(array, setArray, stopSort) {
 
         let j = i - 1;
         while (j >= 0) {
+            /* useRef indicates whether the user has indicated to stop the sorting */
             if (stopSort.current) {
                 stopSort.current = false;
                 return false;
             }
+
             let cur = array[j];
             if (key < cur) {
+                // element moves down one spot
                 await swapBars(j, j + 1, array, setArray);
                 colorAnimate([j], comparisonColor);
                 colorAnimate([j + 1], sortedColor);
@@ -61,6 +65,7 @@ export async function insertionSort(array, setArray, stopSort) {
                 array[j + 1] = cur;
                 array[j] = key;
             } else {
+                // the new element is already in the right place, we're done
                 break;
             }
             j--;
@@ -69,43 +74,50 @@ export async function insertionSort(array, setArray, stopSort) {
         await sleep(delay);
     }
 
-    // console.log(arraysEqual(testSort, array));
     return true;
 }
 
+/* optimal mergesort algorithm with time complexity: O(n log n) and space complexity: O(1) via use of auxiliary array */
 export async function mergesort(arrayMain, start, end, auxArray, delay, stopSort) {
+    /* useRef indicates whether the user has indicated to stop the sorting */
     if (stopSort.current) {
         stopSort.current = false;
         return false;
     }
-    if (start === end) return true;
+
+    if (start === end) return true; // all elements have been merged
     const mid = Math.floor((start + end) / 2);
     let success = await mergesort(auxArray, start, mid, arrayMain, delay, stopSort); // first half
 
     if (!success) {
+        // user ended sorting prematurely
         return false;
     }
 
     success = await mergesort(auxArray, mid + 1, end, arrayMain, delay, stopSort); // second half
 
     if (!success) {
+        // user ended sorting prematurely
         return false;
     }
     await mergeHelp(arrayMain, start, mid, end, auxArray, delay); // do the actual merging
     return true;
 }
 
+/* Merge 2 sorted subarrays into one sorted final array. in this version of mergesort, rather than passing two arrays, we pass start, mid, and end indices as well as a main array and an auxiliary array. We are merging auxArray[start:mid] with auxArray[mid:end] such that arrayMain[start:end] will be the final merged subarray. */
 async function mergeHelp(arrayMain, start, mid, end, auxArray, delay) {
-    let k = start;
-    let i = start;
-    let j = mid + 1;
+    let k = start; // for tracking place in merged array
+    let i = start; // for tracking place in first half
+    let j = mid + 1; // for tracking place in second half
 
     let firstHalfIndices = [];
     let secondHalfIndices = [];
     for (let x = start; x < mid + 1; x++) {
+        // color the 2 halves
         firstHalfIndices.push(x);
     }
     for (let x = mid + 1; x <= end; x++) {
+        // color the 2 halves
         secondHalfIndices.push(x);
     }
     colorAnimate(firstHalfIndices, firstHalfColor);
@@ -132,7 +144,7 @@ async function mergeHelp(arrayMain, start, mid, end, auxArray, delay) {
         }
     }
     while (i <= mid) {
-        // finish adding any leftover elements
+        // finish adding any leftover elements from first half
         colorAnimate([k], comparisonColor);
         changeBar(k, auxArray[i]);
         await sleep(delay);
@@ -141,7 +153,7 @@ async function mergeHelp(arrayMain, start, mid, end, auxArray, delay) {
         arrayMain[k++] = auxArray[i++];
     }
     while (j <= end) {
-        // finish adding any leftover elements
+        // finish adding any leftover elements from second half
         colorAnimate([k], comparisonColor);
         changeBar(k, auxArray[j]);
         await sleep(delay);
@@ -151,6 +163,7 @@ async function mergeHelp(arrayMain, start, mid, end, auxArray, delay) {
     }
     let allIndices = [];
     for (let p = start; p <= end; p++) {
+        // animation
         allIndices.push(p);
     }
 
@@ -162,7 +175,7 @@ async function mergeHelp(arrayMain, start, mid, end, auxArray, delay) {
     return arrayMain;
 }
 
-/* test if two arrays are equal */
+/* test if two arrays are equal (contain the same elements in the same order) */
 export function arraysEqual(arr1, arr2) {
     if (arr1.length !== arr2.length) return false;
     for (let i = 0; i < arr1.length; i++) {
@@ -173,6 +186,7 @@ export function arraysEqual(arr1, arr2) {
     return true;
 }
 
+/* animation delays */
 const arrLengthToAnimationDelay = {
     5: 300,
     10: 200,
@@ -185,6 +199,7 @@ const arrLengthToAnimationDelay = {
     100: 0,
 };
 
+/* determine animation delay from array length */
 export function getAnimationDelay(arrayLength) {
     const arrLengths = Object.keys(arrLengthToAnimationDelay)
         .map(Number)

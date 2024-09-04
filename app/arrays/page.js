@@ -59,6 +59,7 @@ function resetBars(array) {
     }
 }
 
+/* formatting array bar information */
 const maxBarHeight = 600;
 const arrLengthToBarWidth = {
     5: 20,
@@ -134,6 +135,7 @@ export default function Arrays() {
         slider.style.background = `linear-gradient(to right, #088F8F ${percentage}%, white ${percentage}%)`;
     };
 
+    /* shuffle a new array of the same length */
     const shuffleBars = async () => {
         resetBars(array);
         let newArr = generateRandomArray(1, 100, array.length);
