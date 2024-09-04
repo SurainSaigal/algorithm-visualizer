@@ -1,8 +1,10 @@
-import { colorAnimate, swapBars, sleep } from "./page";
+import { colorAnimate, swapBars, sleep, changeBar } from "./page";
 
 const comparisonColor = "#FFC300";
 const swapColor = "#ff03fb";
-const sortedColor = "#0cff00";
+const firstHalfColor = "#0cd7d7";
+const secondHalfColor = "#d70c72";
+export const sortedColor = "#0cff00";
 const originalColor = "#ffffff";
 
 /* bubble sort with delays for animation purposes */
@@ -64,32 +66,79 @@ export async function insertionSort(array, setArray) {
     return array;
 }
 
-export function mergesort(array) {
-    if (array.length === 1) {
-        return array;
+export async function mergesort(arrayMain, start, end, auxArray, setArray, delay) {
+    if (start === end) return;
+    const mid = Math.floor((start + end) / 2);
+    await mergesort(auxArray, start, mid, arrayMain, setArray, delay); // first half
+    await mergesort(auxArray, mid + 1, end, arrayMain, setArray, delay); // second half
+    await mergeHelp(arrayMain, start, mid, end, auxArray, setArray, delay); // do the actual merging
+}
+
+async function mergeHelp(arrayMain, start, mid, end, auxArray, delay) {
+    let k = start;
+    let i = start;
+    let j = mid + 1;
+
+    let firstHalfIndices = [];
+    let secondHalfIndices = [];
+    for (let x = start; x < mid + 1; x++) {
+        firstHalfIndices.push(x);
     }
-    const mid = Math.floor(array.length / 2);
-    let left = mergesort(array.slice(0, mid));
-    let right = mergesort(array.slice(mid, array.length + 1));
-    let i1 = 0;
-    let i2 = 0;
-    let res = [];
-    while (i1 < left.length && i2 < right.length) {
-        if (left[i1] <= right[i2]) {
-            res.push(left[i1++]);
+    for (let x = mid + 1; x <= end; x++) {
+        secondHalfIndices.push(x);
+    }
+    colorAnimate(firstHalfIndices, firstHalfColor);
+    colorAnimate(secondHalfIndices, secondHalfColor);
+    await sleep(delay);
+
+    while (i <= mid && j <= end) {
+        if (auxArray[i] <= auxArray[j]) {
+            // overwrite value in main array with value at i in aux array
+            colorAnimate([k], comparisonColor);
+            changeBar(k, auxArray[i]);
+            await sleep(delay);
+            colorAnimate([k], sortedColor);
+
+            arrayMain[k++] = auxArray[i++];
         } else {
-            res.push(right[i2++]);
+            // overwrite value in main array with value at j in aux array
+            colorAnimate([k], comparisonColor);
+            changeBar(k, auxArray[j]);
+            await sleep(delay);
+            colorAnimate([k], sortedColor);
+
+            arrayMain[k++] = auxArray[j++];
         }
     }
+    while (i <= mid) {
+        // finish adding any leftover elements
+        colorAnimate([k], comparisonColor);
+        changeBar(k, auxArray[i]);
+        await sleep(delay);
+        colorAnimate([k], sortedColor);
 
-    while (i1 < left.length) {
-        res.push(left[i1++]);
+        arrayMain[k++] = auxArray[i++];
+    }
+    while (j <= end) {
+        // finish adding any leftover elements
+        colorAnimate([k], comparisonColor);
+        changeBar(k, auxArray[j]);
+        await sleep(delay);
+        colorAnimate([k], sortedColor);
+
+        arrayMain[k++] = auxArray[j++];
+    }
+    let allIndices = [];
+    for (let p = start; p <= end; p++) {
+        allIndices.push(p);
     }
 
-    while (i2 < right.length) {
-        res.push(right[i2++]);
+    await sleep(delay > 20 ? delay * 3 : 20);
+    if (end !== arrayMain.length - 1) {
+        colorAnimate(allIndices, originalColor);
     }
-    return res;
+    await sleep(delay);
+    return arrayMain;
 }
 
 /* test if two arrays are equal */
@@ -111,10 +160,11 @@ const arrLengthToAnimationDelay = {
     30: 60,
     40: 50,
     45: 25,
+    75: 5,
     100: 0,
 };
 
-function getAnimationDelay(arrayLength) {
+export function getAnimationDelay(arrayLength) {
     const arrLengths = Object.keys(arrLengthToAnimationDelay)
         .map(Number)
         .sort((a, b) => a - b);

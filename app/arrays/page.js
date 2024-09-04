@@ -1,6 +1,13 @@
 "use client";
 import { useState, useEffect } from "react";
-import { bubbleSort, insertionSort, mergesort, arraysEqual } from "./sortingAlgorithms";
+import {
+    bubbleSort,
+    insertionSort,
+    getAnimationDelay,
+    arraysEqual,
+    mergesort,
+    sortedColor,
+} from "./sortingAlgorithms";
 
 /* generate a random integer array given a minimum, maximum, and length */
 function generateRandomArray(minVal, maxVal, length) {
@@ -35,13 +42,10 @@ export async function colorAnimate(indices, color) {
 
 /* animate the swapping of two array bars */
 export async function swapBars(idx1, idx2, arr, setArray) {
-    // console.log("arr before", arr);
-    // console.log("swapping ", arr[idx1], "and ", arr[idx2]);
     let newArr = arr.slice();
     let tmp = newArr[idx1];
     newArr[idx1] = newArr[idx2];
     newArr[idx2] = tmp;
-    // console.log("new array", newArr);
     setArray(newArr);
     return;
 }
@@ -68,8 +72,19 @@ const arrLengthToBarWidth = {
     115: 5,
 };
 
+export function changeBar(idx, newValue) {
+    const bar = document.getElementById(idx + "-bar");
+    if (bar) {
+        bar.style.height = `${(newValue / 100) * maxBarHeight}px`;
+    }
+    const num = document.getElementById(idx + "-number");
+    if (num) {
+        num.innerText = newValue;
+    }
+}
+
 export default function Arrays() {
-    const [arrayLength, setArrayLength] = useState(5);
+    const [arrayLength, setArrayLength] = useState(40);
     const [barWidth, setBarWidth] = useState(20);
     const [array, setArray] = useState([]);
     const [sorting, setSorting] = useState(false);
@@ -95,6 +110,7 @@ export default function Arrays() {
     }, [arrayLength]);
 
     const handleSliderChange = (event) => {
+        setSorted(false);
         setArrayLength(event.target.value);
         updateSliderBackground(event.target.value);
     };
@@ -103,6 +119,14 @@ export default function Arrays() {
         const slider = document.getElementById("default-range");
         const percentage = ((value - slider.min) / (slider.max - slider.min)) * 100;
         slider.style.background = `linear-gradient(to right, #088F8F ${percentage}%, white ${percentage}%)`;
+    };
+
+    const shuffleBars = async () => {
+        resetBars(array);
+        let newArr = generateRandomArray(1, 100, array.length);
+        setArray(newArr);
+        await sleep(500);
+        return newArr;
     };
 
     return (
@@ -125,12 +149,12 @@ export default function Arrays() {
                     className="ms-5 border rounded-md"
                     disabled={sorting}
                     onClick={async () => {
+                        let arr = array;
                         if (sorted) {
-                            resetBars(array);
-                            await sleep(2000);
+                            arr = await shuffleBars();
                         }
                         setSorting(true);
-                        await bubbleSort(array, setArray);
+                        await bubbleSort(arr, setArray);
                         setSorting(false);
                         setSorted(true);
                     }}
@@ -141,12 +165,12 @@ export default function Arrays() {
                     className="ms-5 border rounded-md"
                     disabled={sorting}
                     onClick={async () => {
+                        let arr = array;
                         if (sorted) {
-                            resetBars(array);
-                            await sleep(2000);
+                            arr = await shuffleBars();
                         }
                         setSorting(true);
-                        await insertionSort(array, setArray);
+                        await insertionSort(arr, setArray);
                         setSorting(false);
                         setSorted(true);
                     }}
@@ -157,16 +181,16 @@ export default function Arrays() {
                     className="ms-5 border rounded-md"
                     disabled={sorting}
                     onClick={async () => {
+                        let arr = array;
                         if (sorted) {
-                            resetBars(array);
-                            await sleep(2000);
+                            arr = await shuffleBars();
                         }
                         setSorting(true);
 
-                        let testSort = array.slice().sort((a, b) => a - b);
-                        let arr = mergesort(array);
+                        let copy = arr.slice();
+                        let delay = getAnimationDelay(arr.length);
+                        await mergesort(copy, 0, arr.length - 1, arr.slice(), delay);
 
-                        console.log(arraysEqual(arr, testSort));
                         setSorting(false);
                         setSorted(true);
                     }}
